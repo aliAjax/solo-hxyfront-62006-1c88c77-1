@@ -96,7 +96,13 @@ assert.equal(imp.gems.length, 3, "3 条有效(ST-100×2、ST-103)");
 assert.equal(imp.errors.length, 2, "2 条错误(缺编号、克拉非法)");
 assert.ok(imp.errors[0].includes("第 3 行") && imp.errors[1].includes("第 4 行"), "错误应带行号");
 assert.deepStrictEqual(imp.duplicates, [{ code: "ST-100", count: 2 }], "文件内重复编号");
-assert.equal(imp.gems[2].type, "碧玺, 双色", "引号内逗号应正确解析");
+// 有效行保持文件顺序:ST-100(0.50) → ST-103(带引号逗号) → ST-100(0.30)
+assert.equal(imp.gems[0].code, "ST-100");
+assert.equal(imp.gems[0].carat, "0.50");
+assert.equal(imp.gems[1].code, "ST-103");
+assert.equal(imp.gems[1].type, "碧玺, 双色", "引号内逗号应正确解析,且位于第 2 条有效记录");
+assert.equal(imp.gems[2].code, "ST-100");
+assert.equal(imp.gems[2].carat, "0.30");
 const imported = imp.gems.map((x) => L.createGem(x, batchB.id));
 gems.push(...imported);
 console.log("✓ 7. 批量导入:行级校验、引号转义、文件内查重");
@@ -127,7 +133,7 @@ console.log("✓ 10. 订单归集:清单、总克拉、状态统计");
 
 /* 11. 导出摘要 CSV */
 const out = L.buildExportCSV(gems, (id) => (id === batchA.id ? batchA.name : id === batchB.id ? batchB.name : "?"));
-assert.ok(out.includes("总颗数,8"), "摘要含总颗数");
+assert.ok(out.includes("总颗数,7"), "摘要含总颗数(4 录入 + 3 导入)");
 assert.ok(out.includes("状态统计"), "摘要含状态统计");
 assert.ok(out.includes("已镶嵌 2"), "状态统计:已镶嵌 2");
 assert.ok(out.includes("缺陷搁置 1"), "状态统计:缺陷搁置 1");
